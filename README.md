@@ -11,3 +11,9 @@ terraform fmt
 terraform validate
 terraform apply
 terraform destroy
+
+# Conectar kubectl
+
+aws eks update-kubeconfig --region us-east-1 --name fiap-self-service-k8s
+kubectl get svc
+
