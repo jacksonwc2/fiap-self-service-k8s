@@ -1,4 +1,4 @@
-name: Terraform CI/CD
+name: Terraform - Infra Cluster AWS EKS
 
 on:
   push:
@@ -26,16 +26,29 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Read config.json
+        id: read-config
+        run: |
+          ENABLED="$(jq -r 'enabled' ./config.json)"
+          echo "enabled=$(echo $ENABLED)" >> $GITHUB_OUTPUT
+
       - name: Terraform Init
         run: terraform init
 
+      - name: Terraform Fmt
+        run: terraform fmt
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Destroy
+        if: steps.read-config.outputs.enabled == 'false'
+        run: terraform destroy -auto-approve -lock=false
+
       - name: Terraform Plan
+        if: steps.read-config.outputs.enabled == 'true'
         run: terraform plan -lock=false
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
+        if: steps.read-config.outputs.enabled == 'true'
         run: terraform apply -auto-approve -lock=false
-
-      - name: Terraform Destroy
-        if: github.ref == 'refs/heads/main'
-        run: terraform destroy -auto-approve -lock=false
