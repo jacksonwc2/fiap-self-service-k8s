@@ -8,6 +8,7 @@ resource "aws_eks_cluster" "k8s_cluster" {
 
   vpc_config {
     subnet_ids = concat(module.vpc.private_subnets, module.vpc.public_subnets)
+    security_group_ids = [aws_security_group.eks_security_group.id]
   }
 
   tags = {
@@ -23,7 +24,7 @@ resource "aws_eks_node_group" "k8s_node_group" {
   cluster_name    = var.cluster_name
   node_group_name = "k8s_node_group"
   node_role_arn   = var.iam_role_arn
-  subnet_ids      = concat(module.vpc.private_subnets, module.vpc.public_subnets)
+  subnet_ids      = module.vpc.private_subnets
 
   scaling_config {
     desired_size = 1
